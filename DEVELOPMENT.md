@@ -175,6 +175,20 @@ curl -X POST http://localhost:3000/api/v1/users/sign_up \
 
 ---
 
+## Gotchas & Fixes
+
+### Devise scope with nested namespaces
+When `devise_for :users` is inside `namespace :api do namespace :v1 do`, Devise names the Warden scope `api_v1_user` instead of `user`. This breaks sign_in because Warden looks for `params[:api_v1_user]` but clients send `params[:user]`.
+
+**Fix:** add `singular: :user` to `devise_for` in `config/routes.rb`.
+
+### Rails credentials on WSL2 with VS Code
+`rails credentials:edit` opens a temp file in VS Code but Rails re-encrypts before VS Code finishes writing. Result: changes are lost silently.
+
+**Fix:** use `EDITOR=nano rails credentials:edit` in the terminal instead.
+
+---
+
 ## WSL2 Notes
 - Always run `rbenv local 3.3.6` in the project root before `rails new`
 - Use Unix socket auth for PostgreSQL (remove `host: localhost` from database.yml)
@@ -272,11 +286,46 @@ rails db:seed
 
 ---
 
+## API Controllers
+
+### 24. QuestsController
+File: `app/controllers/api/v1/quests_controller.rb`
+- `index` — returns all quests ordered by priority
+- `show` — returns one quest with its steps embedded
+
+### 25. StepsController
+File: `app/controllers/api/v1/steps_controller.rb`
+- `index` — returns steps for a quest, ordered by position
+- Nested under quests: `GET /api/v1/quests/:quest_id/steps`
+
+### 26. UserQuestsController
+File: `app/controllers/api/v1/user_quests_controller.rb`
+- `index` — returns current user's quests with quest data embedded
+- `create` — starts a quest (creates UserQuest with status `in_progress`)
+- Guards against starting the same quest twice
+
+### 27. UserStepsController
+File: `app/controllers/api/v1/user_steps_controller.rb`
+- `create` — marks a step as complete, sets `completed_at`
+- Guards against completing the same step twice
+
+### Routes summary
+```
+GET    /api/v1/quests
+GET    /api/v1/quests/:id
+GET    /api/v1/quests/:quest_id/steps
+GET    /api/v1/user_quests
+POST   /api/v1/user_quests
+POST   /api/v1/user_steps
+```
+
+---
+
 ## Next Steps
 - [x] Add seeds (sample quests, steps, badges)
-- [ ] Build API controllers (quests, steps, user_quests, user_steps, badges)
-- [ ] Set up React + TypeScript frontend (Vite)
+- [x] Build API controllers (quests, steps, user_quests, user_steps)
 - [ ] Gamification logic (XP on step/quest completion, level up, badge awarding)
+- [ ] Set up React + TypeScript frontend (Vite)
 
 ---
 
