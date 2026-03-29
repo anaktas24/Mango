@@ -190,11 +190,76 @@ git push -u origin main
 
 ---
 
+---
+
+## Core Models
+
+### 15. Generate Quest model
+```bash
+rails generate model Quest title:string description:text tips:text external_url:string estimated_duration:string xp_reward:integer priority:integer canton:string difficulty:integer
+```
+- `difficulty` stored as integer, mapped to `easy/medium/hard` via enum in the model
+- Added `null: false` on required fields, `default: 0` on `xp_reward`, `priority`, `difficulty`
+- Added enum, validations, and associations in `app/models/quest.rb`
+
+### 16. Generate QuestPrerequisite model
+```bash
+rails generate model QuestPrerequisite quest:references prerequisite:references
+```
+- Self-referential join table — both `quest_id` and `prerequisite_id` point to the `quests` table
+- Fix migration: use `foreign_key: { to_table: :quests }` on the `prerequisite` reference
+- Model uses `belongs_to :prerequisite, class_name: "Quest"` to resolve the self-reference
+
+### 17. Generate Step model
+```bash
+rails generate model Step title:string description:text position:integer xp_reward:integer quest:references
+```
+- `quest:references` adds `quest_id` foreign key automatically
+- Added `null: false` and `default: 0` on required fields
+
+### 18. Generate UserQuest model
+```bash
+rails generate model UserQuest user:references quest:references status:integer position:integer share_token:string
+```
+- `status` is an enum: `not_started: 0, in_progress: 1, completed: 2`
+- `position` allows users to reorder their quest list (drag and drop)
+- `share_token` is unique nullable — populated when user shares, gives a read-only public link
+- Add unique index inline: `t.string :share_token, index: { unique: true }`
+
+### 19. Generate UserStep model
+```bash
+rails generate model UserStep user:references step:references completed:boolean completed_at:datetime
+```
+- `completed` defaults to `false`, not nullable
+- `completed_at` is nullable — set when step is marked complete
+
+### 20. Generate Badge model
+```bash
+rails generate model Badge name:string description:text icon:string trigger:string
+```
+- `trigger` is a string key (e.g. `"complete_first_quest"`) used by gamification logic to award badges
+
+### 21. Generate UserBadge model
+```bash
+rails generate model UserBadge user:references badge:references earned_at:datetime
+```
+- `earned_at` is nullable — set when badge is awarded
+
+### 22. Add XP and level to User
+```bash
+rails generate migration AddXpAndLevelToUsers xp:integer level:integer
+rails db:migrate
+```
+- Both default to `0`, not nullable
+- `level` is stored (not calculated on the fly) to avoid recalculating on every request
+
+---
+
 ## Next Steps
-- [ ] Generate core models: Quest, Step, UserQuest, Badge, UserBadge
-- [ ] Add XP and gamification fields to User
-- [ ] Build quest and badge endpoints
-- [ ] Set up React + TypeScript frontend
+- [ ] Add seeds (sample quests, steps, badges)
+- [ ] Build API controllers (quests, steps, user_quests, user_steps, badges)
+- [ ] Set up React + TypeScript frontend (Vite)
+- [ ] Gamification logic (XP on step/quest completion, level up, badge awarding)
 
 ---
 
