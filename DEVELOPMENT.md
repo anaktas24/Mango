@@ -255,8 +255,25 @@ rails db:migrate
 
 ---
 
+## Seeds
+
+### 23. Seed the database
+File: `db/seeds.rb`
+- Clears all existing data before seeding (safe to re-run)
+- Creates 1 test user (`test@mango.com` / `password123`)
+- Creates 3 quests: Residence Permit, Open Bank Account, Find Housing
+- Creates 9 steps spread across the 3 quests (with position and xp_reward)
+- Creates 3 badges with trigger keys: `complete_first_step`, `complete_first_quest`, `complete_all_quests`
+
+Run with:
+```bash
+rails db:seed
+```
+
+---
+
 ## Next Steps
-- [ ] Add seeds (sample quests, steps, badges)
+- [x] Add seeds (sample quests, steps, badges)
 - [ ] Build API controllers (quests, steps, user_quests, user_steps, badges)
 - [ ] Set up React + TypeScript frontend (Vite)
 - [ ] Gamification logic (XP on step/quest completion, level up, badge awarding)
